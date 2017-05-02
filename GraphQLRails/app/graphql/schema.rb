@@ -8,24 +8,29 @@ Schema = GraphQL::Schema.define do
     # Here's a simple implementation which:
     # - joins the type name & object.id
     # - encodes it with base64:
-    # GraphQL::Schema::UniqueWithinType.encode(type_definition.name, object.id)
+    GraphQL::Schema::UniqueWithinType.encode(type_definition.name, object.id)
   }
 
   # Given a string UUID, find the object
   object_from_id ->(id, query_ctx) {
     # For example, to decode the UUIDs generated above:
-    # type_name, item_id = GraphQL::Schema::UniqueWithinType.decode(id)
+    type_name, item_id = GraphQL::Schema::UniqueWithinType.decode(id)
     #
     # Then, based on `type_name` and `id`
     # find an object in your application
-    # ...
+    Object.const_get(type_name).find(item_id)
   }
 
   # Object Resolution
   resolve_type -> (obj, ctx) {
-    # TODO: Implement this function
-    # to return the correct type for `obj`
-    raise(NotImplementedError)
+    case obj
+    when Post
+      Types::PostType
+    when Comment
+      Types::CommentType
+    else
+      raise("Unexpected object: #{obj}")
+    end
   }
 
   # GraphQL::Batch setup:
